@@ -1,0 +1,22 @@
+﻿<Page x:Class="AmorousEditor.DropOverlay"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="DropOverlay" IsHitTestVisible="False">
+
+    <Grid Background="#D8000000">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <TextBox x:Name="DropText" HorizontalAlignment="Center" Margin="0,0,0,25" TextWrapping="Wrap" Text="Please, drag and drop file &quot;Amorous.Game.Windows.exe&quot;" VerticalAlignment="Bottom" Background="{x:Null}" BorderBrush="{x:Null}" FontSize="20" Foreground="White"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <TextBox x:Name="Check" HorizontalAlignment="Center" Margin="0,0,0,0" TextWrapping="Wrap" Text="❌" VerticalAlignment="Top" BorderBrush="{x:Null}" FontSize="72" Foreground="Red" Background="{x:Null}"/>
+        </Grid>
+    </Grid>
+</Page>

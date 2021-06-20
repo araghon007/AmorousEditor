@@ -3,10 +3,44 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AmorousEditor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Amorous Editor" Height="450" Width="800" Icon="Resources/Icons/Amorous.ico">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         
+        <!-- The Menu, always visible -->
+        <Menu Grid.Row="0" VerticalAlignment="Top">
+            <MenuItem Header="File" ToolTip="File commands">
+                <MenuItem Header="_Open" Click="OpenClick" ToolTip="Use this to select the Amorous executable"/>
+                <MenuItem Header="_Import" Click="ImportClick" ToolTip="Use this to import images as XNBs"/>
+                <Separator/>
+                <MenuItem Header="_Exit" Click="ExitClick" ToolTip="Exits the editor"/>
+            </MenuItem>
+            <MenuItem Header="Settings" ToolTip="List of options for the game and editor">
+                <MenuItem x:Name="NSFWMode" Header="Enable NSFW Mode" IsEnabled="False" IsCheckable="True" ToolTip="Enables Amorous NSFW Mode (If it is enabled already, the option will be checked)"/>
+                <Separator/>
+                <MenuItem x:Name="Compress" Header="Compress files on import" IsCheckable="True" IsChecked="True" ToolTip="Disables file thumbnails (Disable if you see low performance while browsing folders)"/>
+                <MenuItem x:Name="FileThumb" Header="Don't show file thumbnails" IsCheckable="True" ToolTip="Disables file thumbnails (Disable if you see low performance while browsing folders)" Click="FileThumbClick"/>
+                <MenuItem x:Name="TypeCheck" Header="Enable file type check" IsCheckable="True" IsChecked="True" IsEnabled="False" ToolTip="Checks what type is the XNB file and shows according file icon (Still has to decompress the files, disable if you see low performance while browsing folders)"/>
+            </MenuItem>
+            <MenuItem Header="Help" ToolTip="Help">
+                <MenuItem x:Name="About" Header="About" ToolTip="Show information about this application" Click="AboutClick"/>
+            </MenuItem>
+        </Menu>
+        
+        <Grid Grid.Row="1" AllowDrop="True" DragEnter="DragExeEnter" DragLeave="DragExeLeave" Drop="DropExe" Background="White">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" TextWrapping="Wrap"  Text="Please select Amorous executable (You can also drag and drop it onto this window or use File->Open)" />
+            <Button Grid.Row="1" Content="Select" HorizontalAlignment="Center" Margin="0,5,0,0" VerticalAlignment="Top" Width="75" Click="OpenClick" ToolTip="Select Amorous executable"/>
+        </Grid>
+        
+        <!-- The frame used for Drop Overlay and File Explorer -->
+        <Frame x:Name="Explorer" Grid.Row="1" NavigationUIVisibility="Hidden"/>
     </Grid>
 </Window>
