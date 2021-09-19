@@ -182,7 +182,7 @@ namespace AmorousEditor
         private string GetAmorousDir()
         {
             // Gets Steam install directory
-            var dir = GetSteamDir();
+            var dir = GetSteamDir().Replace("/", @"\");
             
             // Checks in default directory
             if (Directory.Exists(dir + @"\SteamApps\common\Amorous")) 
