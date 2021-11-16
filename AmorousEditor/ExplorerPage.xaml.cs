@@ -178,7 +178,8 @@ namespace AmorousEditor
         private void MakeTreeContent()
         {
             ModContentFolder.Items.Clear();
-            // For each sub-directory within the Content-Release directory
+            // For each sub-directory within the Content-Mods directory
+            if(AmorousModContent.Exists)
             foreach (DirectoryInfo dir in AmorousModContent.GetDirectories())
             {
                 // Creates new TreeViewItem and sets the header as the name of the directory
@@ -203,6 +204,7 @@ namespace AmorousEditor
 
             ContentFolder.Items.Clear();
             // For each sub-directory within the Content-Release directory
+            if(AmorousContent.Exists)
             foreach (DirectoryInfo dir in AmorousContent.GetDirectories())
             {
                 // Creates new TreeViewItem and sets the header as the name of the directory
