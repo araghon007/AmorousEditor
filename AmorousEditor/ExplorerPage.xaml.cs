@@ -335,8 +335,15 @@ namespace AmorousEditor
 
         private void ModContentFolder_OnSelected(object sender, RoutedEventArgs e)
         {
-            Viewer.Navigate(new ExplorerViewPage(AmorousModContent, this));
-            e.Handled = true;
+            try
+            {
+                Viewer.Navigate(new ExplorerViewPage(AmorousModContent, this));
+                e.Handled = true;
+            }
+            catch
+            {
+
+            }
         }
     }
 }

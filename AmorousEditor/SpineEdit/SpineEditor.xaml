@@ -7,11 +7,6 @@
         xmlns:FormGL="clr-namespace:SharpGL;assembly=SharpGL.WinForms"
         Title="Spine Editor" Height="450" Width="800" >
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="150px"/>
-        </Grid.ColumnDefinitions>
-
         <!--   
             I had to use the WinForms control instead of the WPF one, because I needed to use Hardware Acceleration, which is not possible via default RenderContext
             NativeWindow uses Hardware Acceleration, but needs handle of the control, which doesn't seem to be possible in WPF
@@ -26,9 +21,6 @@
         <WindowsFormsHost Grid.Column="0" x:Name="host" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <FormGL:OpenGLControl x:Name="openGLCtrl" OpenGLDraw="OpenGLDraw" OpenGLInitialized="openGLCtrl_OpenGLInitialized" DrawFPS="False" RenderContextType="NativeWindow" FrameRate="999" MouseWheel="openGLCtrl_MouseWheel"/>
         </WindowsFormsHost>
-        
-        <ComboBox x:Name="SkinSelect" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,120,0,0" Width="120" SelectionChanged="SelectSkin"/>
-        <CheckBox Grid.Column="1" Content="Play Animation" HorizontalAlignment="Center" Margin="0,158,0,0" VerticalAlignment="Top" Click="PlayAnimation"/>
         
     </Grid>
 </Window>

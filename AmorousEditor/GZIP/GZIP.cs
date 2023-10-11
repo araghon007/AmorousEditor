@@ -11,7 +11,7 @@ namespace AmorousEditor
     static class GZIP
     {
         /// <summary>
-        /// Decompresses a GZIP Compressed byte array
+        /// Decompresses a GZIP Compressed byte array //TODO: Why am I converting a stream to an array to a stream? I see, buffer
         /// </summary>
         /// <param name="gzip">Byte array to be decompressed</param>
         /// <returns>GZIP Decompressed MemoryStream</returns>

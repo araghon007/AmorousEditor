@@ -44,7 +44,17 @@ namespace AmorousEditor
                 Filter = "Amorous executable|Amorous.Game.Windows.exe"
             };
 
-            var amorousDir = GetAmorousDir();
+            var amorousDir = string.Empty;
+
+            // Just uhh, yeah
+            try
+            {
+                amorousDir = GetAmorousDir();
+            }
+            catch
+            {
+
+            }
 
             // Tries to open the file dialog in Amorous installation directory
             // If the directory doesn't exist, file dialog is opened in default path
@@ -188,6 +198,7 @@ namespace AmorousEditor
             if (Directory.Exists(dir + @"\SteamApps\common\Amorous")) 
                 return dir + @"\SteamApps\common\Amorous";
             
+            // TODO: Add a proper VDF parser because jesus christ
             // Tries to read libraryfolders.vdf to find Steam's library locations
             if (File.Exists(dir + @"\SteamApps\libraryfolders.vdf"))
             {
@@ -196,6 +207,18 @@ namespace AmorousEditor
                 for (int i = 4; i < vdf.Length - 1; i++)
                 {
                     var libraries = vdf[i].Split('"');
+
+                    bool isPath = false;
+
+                    for(int j = 0; j < libraries.Length; j++)
+                    {
+                        if (libraries[j] == "path")
+                            isPath = true;
+                    }
+
+                    if(isPath == false) continue;
+
+                    if(libraries.Length < 3) continue;
                     // Need to replace the double slashes from the vdf or else everything breaks (I think)
                     var lib = libraries[3].Replace(@"\\", @"\") + @"\SteamApps\common\Amorous";
                     if (Directory.Exists(lib))

@@ -124,7 +124,8 @@ namespace AmorousEditor
                 writer.Write(bmp.PixelHeight);
                 writer.Write(1);
                 writer.Write(img.Length);
-                
+                // TODO: What did I do why is this commented out
+                /*
                 for (var i = 0; i < img.Length; i += 4)
                 {
                     byte r = img[i + 0];
@@ -136,7 +137,7 @@ namespace AmorousEditor
                     img[i + 1] = Alpha(g, a);
                     img[i + 0] = Alpha(b, a);
                 }
-                
+                */
                 writer.Write(img);
                 writer.Close();
                 if (compress)

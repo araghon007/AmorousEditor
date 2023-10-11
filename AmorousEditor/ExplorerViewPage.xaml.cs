@@ -3,6 +3,7 @@ using AmorousEditor.SpineEdit;
 using AmorousEditor.Types;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -13,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace AmorousEditor
@@ -227,85 +229,41 @@ namespace AmorousEditor
                     ViewContent.Children.Add(toggleButton);
                 }
             }
-
+            
             // Spine Atlases, will rewrite the code to use double-click to open
-            /*
+            
             else if (file.Name.Contains(".atlas.txt"))
             {
-                byte[] atlasfile = File.ReadAllBytes(file.FullName);
-                using (MemoryStream decompressed = GZIP.Decompress(atlasfile))
+                // Gets an icon
+                using (Stream iconStream = Application.GetResourceStream(new Uri("pack://application:,,,/AmorousEditor;component/Resources/Icons/file.ico")).Stream)
                 {
-                    var atlasIndex = new List<string>();
-                    using (var reader = new StreamReader(decompressed))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            atlasIndex.Add(reader.ReadLine());
-                        }
-                    }
-                    string atlasname = "";
-                    WriteableBitmap atlasmap = null;
-                    string outname = "";
-                    bool rotate = false;
-                    int x = 0;
-                    int y = 0;
-                    int sizex = 0;
-                    int sizey = 0;
-                    foreach (string line in atlasIndex)
-                    {
-                        if (line.Contains(".png"))
-                        {
-                            if (atlasname == line)
-                            {
+                    // Extracts the 256x256 PNG from Icon
+                    var icon = MiscUtils.ExtractVistaIconBitSource(new Icon(iconStream));
 
-                            }
-                            else
-                            {
-                                atlasname = line;
-                                atlasmap = (WriteableBitmap)XNB.ResolveXNB(file.DirectoryName + @"\" + atlasname.Replace(".png", ".xnb"));
-                            }
-                            //Console.WriteLine(atlasname);
-                        }
-                        else if (line.Contains("  "))
-                        {
-                            if (line.Contains("rotate:"))
-                            {
-                                var lineas = line.Remove(0, 2);
-                                var rotparams = lineas.Split(new String[] { " " }, StringSplitOptions.None);
-                                rotate = Convert.ToBoolean(rotparams[1]);
-                                //Console.WriteLine("    " + rotate);
-                            }
-                            else if (line.Contains("xy:"))
-                            {
-                                var lineas = line.Remove(0, 2);
-                                var xyparams = lineas.Split(new String[] { ", ", " " }, StringSplitOptions.None);
-                                x = Convert.ToInt32(xyparams[1]);
-                                y = Convert.ToInt32(xyparams[2]);
-                                //Console.WriteLine("    " + x + ", " + y);
-                            }
-                            else if (line.Contains("size:"))
-                            {
-                                var lineas = line.Remove(0, 2);
-                                var xyparams = lineas.Split(new String[] { ", ", " " }, StringSplitOptions.None);
-                                sizex = Convert.ToInt32(xyparams[1]);
-                                sizey = Convert.ToInt32(xyparams[2]);
-                                //Console.WriteLine("    " + sizex + ", " + sizey);
-                                ExportAtlas(atlasmap, outname, rotate, x, y, sizex, sizey);
-                            }
-                        }
-                        else if (line.Contains("size:") || line.Contains("format:") || line.Contains("filter:") || line.Contains("repeat:"))
-                        {
+                    // Creates a RadioButton based on a "template"
+                    var toggleButton = MiscUtils.MakeIcon(this, icon, file.Name, true);
 
-                        }
-                        else
-                        {
-                            outname = line;
-                            //Console.WriteLine("  " + outname);
-                        }
-                    }
+                    // Context Menus
+
+                    // Creates a new ContextMenu
+                    var context = new ContextMenu();
+
+                    var export = new MenuItem()
+                    {
+                        Header = "Export",
+                        ToolTip = "Exports all parts from this atlas"
+                    };
+                    export.Click += (s, e) => HandleAtlasFile(file);
+                    context.Items.Add(export);
+
+                    // Sets ContextMenu of the button to the current ContextMenu
+                    toggleButton.ContextMenu = context;
+
+                    // Adds the button to the ViewContent
+                    ViewContent.Children.Add(toggleButton);
                 }
             }
-            */
+
 
             // Everything else
             else
@@ -316,11 +274,142 @@ namespace AmorousEditor
                     // Extracts the 256x256 PNG from Icon
                     var icon = MiscUtils.ExtractVistaIconBitSource(new Icon(iconStream));
 
+                    // Tries to figure out whether the file is compressed or not
+                    bool compressed = File.OpenRead(file.FullName).IsPossiblyGZipped();
+
                     // Creates a RadioButton based on a "template"
-                    var toggleButton = MiscUtils.MakeIcon(this, icon, file.Name, false);
+                    var toggleButton = MiscUtils.MakeIcon(this, icon, $"{file.Name}{(compressed ? "" : "\n(Uncompressed)")}", true);
+
+                    // Context Menus
+
+                    // Creates a new ContextMenu
+                    var context = new ContextMenu();
+
+                    // Switch based on compression status
+                    if (compressed)
+                    {
+                        // Decompress if compressed
+                        var decompress = new MenuItem()
+                        {
+                            Header = "Decompress",
+                            ToolTip = "Decompresses this file"
+                        };
+                        decompress.Click += (s, e) => Decompress(s, e, file);
+                        context.Items.Add(decompress);
+                    }
+                    else
+                    {
+                        // Compress if not compressed
+                        var compress = new MenuItem()
+                        {
+                            Header = "Compress",
+                            ToolTip = "Compresses this file"
+                        };
+                        compress.Click += (s, e) => Compress(s, e, file);
+                        context.Items.Add(compress);
+                    }
+
+
+                    // Sets ContextMenu of the button to the current ContextMenu
+                    toggleButton.ContextMenu = context;
 
                     // Adds the button to the ViewContent
                     ViewContent.Children.Add(toggleButton);
+                }
+            }
+        }
+
+        private void HandleAtlasFile(FileInfo file)
+        {
+            // Save file dialog
+            var diag = new SaveFileDialog()
+            {
+                // png (see above)
+                FileName = Path.GetFileNameWithoutExtension(file.FullName) + ".png",
+                InitialDirectory = Path.GetDirectoryName(file.FullName),
+                // png
+                DefaultExt = "*.png",
+                // png
+                Filter = "Portable Network Graphics|*.png"
+            };
+
+
+            // false
+            if (diag.ShowDialog() == false)
+                return;
+
+            var directory = Path.GetDirectoryName(diag.FileName);
+
+            byte[] atlasfile = File.ReadAllBytes(file.FullName);
+            using (MemoryStream decompressed = GZIP.Decompress(atlasfile))
+            {
+                var atlasIndex = new List<string>();
+                using (var reader = new StreamReader(decompressed))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        atlasIndex.Add(reader.ReadLine());
+                    }
+                }
+                string atlasname = "";
+                Texture2D atlasmap = null;
+                string outname = "";
+                bool rotate = false;
+                int x = 0;
+                int y = 0;
+                int sizex = 0;
+                int sizey = 0;
+                foreach (string line in atlasIndex)
+                {
+                    if (line.Contains(".png"))
+                    {
+                        if (atlasname == line)
+                        {
+
+                        }
+                        else
+                        {
+                            atlasname = line;
+                            atlasmap = (Texture2D)XNB.ResolveXNB(file.DirectoryName + @"\" + atlasname.Replace(".png", ".xnb"));
+                        }
+                        //Console.WriteLine(atlasname);
+                    }
+                    else if (line.Contains("  "))
+                    {
+                        if (line.Contains("rotate:"))
+                        {
+                            var lineas = line.Remove(0, 2);
+                            var rotparams = lineas.Split(new String[] { " " }, StringSplitOptions.None);
+                            rotate = Convert.ToBoolean(rotparams[1]);
+                            //Console.WriteLine("    " + rotate);
+                        }
+                        else if (line.Contains("xy:"))
+                        {
+                            var lineas = line.Remove(0, 2);
+                            var xyparams = lineas.Split(new String[] { ", ", " " }, StringSplitOptions.None);
+                            x = Convert.ToInt32(xyparams[1]);
+                            y = Convert.ToInt32(xyparams[2]);
+                            //Console.WriteLine("    " + x + ", " + y);
+                        }
+                        else if (line.Contains("size:"))
+                        {
+                            var lineas = line.Remove(0, 2);
+                            var xyparams = lineas.Split(new String[] { ", ", " " }, StringSplitOptions.None);
+                            sizex = Convert.ToInt32(xyparams[1]);
+                            sizey = Convert.ToInt32(xyparams[2]);
+                            //Console.WriteLine("    " + sizex + ", " + sizey);
+                            ExportAtlas(atlasmap, outname, directory, rotate, x, y, sizex, sizey);
+                        }
+                    }
+                    else if (line.Contains("size:") || line.Contains("format:") || line.Contains("filter:") || line.Contains("repeat:"))
+                    {
+
+                    }
+                    else
+                    {
+                        outname = line;
+                        //Console.WriteLine("  " + outname);
+                    }
                 }
             }
         }
@@ -511,7 +600,7 @@ namespace AmorousEditor
         }
 
         
-        /*
+        
         /// <summary>
         /// Misleading name, so far it only adds icons for images within an atlas, I'm planning to make atlases double-clickable and this would be a function to actually export a region from Atlas
         /// </summary>
@@ -522,58 +611,28 @@ namespace AmorousEditor
         /// <param name="y">Y coordinate within the Atlas</param>
         /// <param name="sizex">Width of the region</param>
         /// <param name="sizey">Height of the region</param>
-        void ExportAtlas(WriteableBitmap atlasmap, string outname, bool rotate, int x, int y, int sizex, int sizey)
+        void ExportAtlas(Texture2D atlasmap, string outname, string directory, bool rotate, int x, int y, int sizex, int sizey)
         {
             // Not gonna bother commenting this yet
-
+                        
             BitmapSource outmap;
             if (rotate)
             {
-                outmap = new TransformedBitmap(new CroppedBitmap(atlasmap, new Int32Rect(x, y, sizey, sizex)), new RotateTransform(90));
+                outmap = new TransformedBitmap(new CroppedBitmap(atlasmap.Texture, new Int32Rect(x, y, sizey, sizex)), new RotateTransform(90));
             }
             else
             {
-                outmap = new CroppedBitmap(atlasmap, new Int32Rect(x, y, sizex, sizey));
+                outmap = new CroppedBitmap(atlasmap.Texture, new Int32Rect(x, y, sizex, sizey));
             }
 
-            RadioButton toggleButton = MiscUtils.MakeIcon(this, outmap, outname, false);
-
-            var copy = new MenuItem()
+            using(var filestream = File.OpenWrite(Path.Combine(directory, $"{outname}.png")))
             {
-                Header = "Copy",
-                ToolTip = "Copies the image into clipboard"
-            };
-
-            var export = new MenuItem()
-            {
-                Header = "Export",
-                ToolTip = "Allows you to select a folder to export the file into"
-            };
-
-            var import = new MenuItem()
-            {
-                Header = "Import",
-                ToolTip = "Allows you to select a file to replace the current one"
-            };
-
-            copy.Click += new RoutedEventHandler((s, e) => ImageCopy(s, e, outmap, outname));
-
-            export.Click += new RoutedEventHandler((s, e) => ImageExport(s, e, outmap, outname));
-
-            var context = new ContextMenu();
-
-            context.Items.Add(copy);
-
-            context.Items.Add(export);
-
-            context.Items.Add(import);
-
-            toggleButton.ContextMenu = context;
-
-            // Adds the button to the ViewContent
-            ViewContent.Children.Add(toggleButton);
+                var bitmapEncoder = new PngBitmapEncoder();
+                bitmapEncoder.Frames.Add(BitmapFrame.Create(outmap));
+                bitmapEncoder.Save(filestream);
+            }
         }
-        */
+        
         /// <summary>
         /// Used for adding folders into view, which can be double-clicked to navigate
         /// </summary>
@@ -592,11 +651,42 @@ namespace AmorousEditor
                     // Creates a RadioButton based on a "template"
                     var toggleButton = MiscUtils.MakeIcon(this, icon, dir.Name, false);
 
+
+                    // Creates a new ContextMenu
+                    var context = new ContextMenu();
+
+                    // Compress if not compressed
+                    var compress = new MenuItem()
+                    {
+                        Header = "Export images",
+                        ToolTip = "Exports all images in folder and subfolders"
+                    };
+                    compress.Click += (s, e) => Test(s, e, dir);
+                    context.Items.Add(compress);
+
+                    // Sets ContextMenu of the button to the current ContextMenu
+                    toggleButton.ContextMenu = context;
+
+
                     // Binds an event for double clicking the button (Navigates to directory)
                     toggleButton.MouseDoubleClick += new MouseButtonEventHandler((s, e) => DirDouble(s, e, dir));
 
                     // Adds the button to the ViewContent
                     ViewContent.Children.Add(toggleButton);
+                }
+            }
+        }
+
+        private void Test(object s, RoutedEventArgs e, DirectoryInfo dir)
+        {
+            var ae = dir.GetFiles("*.xnb", SearchOption.AllDirectories);
+            foreach(var file in ae)
+            {
+                var xnb = XNB.ResolveXNB(file.FullName);
+                if(xnb is Texture2D image)
+                {
+                    var bmp = MiscUtils.BitmapSourceToBitmap(image.Texture);
+                    bmp.Save($"{file.DirectoryName}/{Path.GetFileNameWithoutExtension(file.FullName)}.png", ImageFormat.Png);
                 }
             }
         }

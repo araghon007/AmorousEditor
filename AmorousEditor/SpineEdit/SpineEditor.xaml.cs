@@ -37,7 +37,7 @@ namespace AmorousEditor
 
         Texture backgroundTexture = new Texture();
 
-        bool PlayAnim = false;
+        bool PlayAnim = true;
 
         bool HasBackground = false;
 
@@ -47,8 +47,16 @@ namespace AmorousEditor
 
             atlases = bitmaps;
 
+            //var fuck = atlas.ReadToEnd();
+
+            //atlas = new StringReader(fuck);
+
             var skeljs = new SkeletonJson(new Atlas(atlas, atlasPath, textureLoader));
+
+            //fuck = json.ReadToEnd();
+
             
+
             skelet = new Skeleton(skeljs.ReadSkeletonData(json));
             if (background != null)
             {
@@ -68,7 +76,7 @@ namespace AmorousEditor
 
             foreach (var skin in skelet.Data.Skins)
             {
-                SkinSelect.Items.Add(skin.Name);
+                //SkinSelect.Items.Add(skin.Name);
                 skelet.SetSkin(skin.Name);
             }
 
@@ -116,24 +124,30 @@ namespace AmorousEditor
             }
 
 
-
+            
             gl.Enable(OpenGL.GL_TEXTURE_2D);
             gl.Enable(OpenGL.GL_BLEND);
             gl.BlendFunc(BlendingSourceFactor.SourceAlpha, BlendingDestinationFactor.OneMinusSourceAlpha);
-
+            
             DrawBackground(gl);
             foreach (var slot in skelet.DrawOrder)
             {
-                if (slot.Attachment != null && !slot.Attachment.Name.Contains("horse") && !slot.Attachment.Name.Contains("Shorts") && !slot.Attachment.Name.Contains("Remy") && !slot.Attachment.Name.Contains("sleeve") && !slot.Attachment.Name.Contains("stripes") && !slot.Attachment.Name.Contains("underbelly") && !slot.Attachment.Name.Contains("Boobs") && !slot.Attachment.Name.Contains("Nipples") && !slot.Attachment.Name.Contains("fold") && !slot.Attachment.Name.Contains("Blink") && !slot.Attachment.Name.Contains("Security"))
+                if (slot.Attachment != null /*&& slot.Attachment.Name.Contains("Flirty shirt")/* && !slot.Attachment.Name.Contains("horse") && !slot.Attachment.Name.Contains("Shorts") && !slot.Attachment.Name.Contains("Remy") && !slot.Attachment.Name.Contains("sleeve") && !slot.Attachment.Name.Contains("stripes") && !slot.Attachment.Name.Contains("underbelly") && !slot.Attachment.Name.Contains("Boobs") && !slot.Attachment.Name.Contains("Nipples") && !slot.Attachment.Name.Contains("fold") && !slot.Attachment.Name.Contains("Blink") && !slot.Attachment.Name.Contains("Security") && !slot.Attachment.Name.Contains("Sad") && !slot.Attachment.Name.Contains("Shy") && !slot.Attachment.Name.Contains("Chill") && !slot.Attachment.Name.Contains("Happy") && !(slot.Attachment.Name.Contains("Flirty") && (slot.Attachment.Name.Contains("Head") || slot.Attachment.Name.Contains("Jaw") || slot.Attachment.Name.Contains("Pupils") || slot.Attachment.Name.Contains("eye") || slot.Attachment.Name.Contains("Blink")))*/)
                 {
-                    if (slot.Attachment.GetType() == typeof(RegionAttachment))
+                    if (slot.Attachment.GetType() == typeof(RegionAttachment) /*&& slot.Attachment.Name == "Chill underwear"*/)
                     {
-                        var worldVertices = new float[2048];
+                        var worldVertices = new float[8];
                         var mesh = (RegionAttachment)slot.Attachment;
                         mesh.ComputeWorldVertices(slot.Bone, worldVertices);
 
                         gl.Color(1f, 1f, 1f);
                         atlasTextures[(mesh.RendererObject as AtlasRegion).page.name].Bind(gl);
+
+                        if(mesh.RegionOffsetX != 0 ||mesh.RegionOriginalWidth != mesh.Width)
+                        {
+                            Console.WriteLine("test");
+                        }
+
                         gl.Begin(BeginMode.Quads);
                         for (int i = 0; i < 8; i += 2)
                         {
@@ -169,7 +183,8 @@ namespace AmorousEditor
             gl.Disable(OpenGL.GL_TEXTURE_2D);
             gl.Disable(OpenGL.GL_BLEND);
             
-            /* Debug bone drawing
+            // Debug bone drawing
+            /*
             foreach (var bone in skelet.Bones)
             {
                 if (bone.Parent != null)
@@ -198,6 +213,7 @@ namespace AmorousEditor
 
         private void DrawBackground(OpenGL gl)
         {
+            
             gl.Color(1f, 1f, 1f);
             backgroundTexture.Bind(gl);
             gl.Begin(BeginMode.Quads);
@@ -209,7 +225,8 @@ namespace AmorousEditor
             gl.Vertex(960, 0);
             gl.TexCoord(0, 1);
             gl.Vertex(-960, 0);
-            /* Greenscreen
+            // Greenscreen
+            /*
             gl.Color(0f, 1f, 0f);
             gl.Begin(BeginMode.Quads);
             gl.Vertex(-2000, 2000);
