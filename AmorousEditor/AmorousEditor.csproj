@@ -118,11 +118,15 @@
       <DependentUpon>ExplorerViewPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="GZIP\GZIP.cs" />
+    <Compile Include="ImageView\ImageView.xaml.cs">
+      <DependentUpon>ImageView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Misc\ClipboardHelper.cs" />
     <Compile Include="Misc\CompressionHelper.cs" />
     <Compile Include="Misc\DIBv5.cs" />
     <Compile Include="Misc\HeaderToImageConverter.cs" />
     <Compile Include="Misc\HtmlClipboardHelper.cs" />
+    <Compile Include="Misc\ImageUtils.cs" />
     <Compile Include="Misc\MiscUtils.cs" />
     <Compile Include="Misc\TreeViewExtensions.cs" />
     <Compile Include="Misc\UIUtility.cs" />
@@ -149,6 +153,9 @@
     </Page>
     <Page Include="ExplorerViewPage.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ImageView\ImageView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MainWindow.xaml">
@@ -228,10 +235,15 @@
     <Resource Include="Resources\Icons\text2.ico" />
     <Resource Include="Resources\Icons\unknown.ico" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Resource Include="Resources\Images\About\Coby.png" />
     <Resource Include="Resources\Images\About\CobyButt.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\PauseButton.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\PlayButton.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

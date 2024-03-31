@@ -124,7 +124,7 @@ namespace AmorousEditor
                 writer.Write(bmp.PixelHeight);
                 writer.Write(1);
                 writer.Write(img.Length);
-                // TODO: What did I do why is this commented out
+                // TODO: What did I do why is this commented out (it's probably because Bitmap contains a format that already premultiplies the Alpha component, so you probably don't need to here. Idk if that's the case tho)
                 /*
                 for (var i = 0; i < img.Length; i += 4)
                 {
