@@ -1,11 +1,11 @@
-﻿<Window x:Class="AmorousEditor.SpineEditor"
+<Window x:Class="AmorousEditor.ImageView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AmorousEditor"
         xmlns:FormGL="clr-namespace:SharpGL;assembly=SharpGL.WinForms"
-        Title="Spine Editor" Height="450" Width="800" >
+        Title="Image Viewer" Height="450" Width="800" >
     <Grid>
         <!--   
             I had to use the WinForms control instead of the WPF one, because I needed to use Hardware Acceleration, which is not possible via default RenderContext
@@ -18,29 +18,9 @@
             Update:
             I tried using the WPF control again, and DIB still has terrible performance, FBO stutters and for some reason the WinForms control now defaults to 20 FPS
         -->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="40px" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="180px" />
-        </Grid.ColumnDefinitions>
-        
         <WindowsFormsHost Grid.Column="0" x:Name="host" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <FormGL:OpenGLControl x:Name="openGLCtrl" OpenGLDraw="OpenGLDraw" OpenGLInitialized="openGLCtrl_OpenGLInitialized" DrawFPS="False" RenderContextType="NativeWindow" FrameRate="999" MouseWheel="openGLCtrl_MouseWheel" KeyDown="openGLCtrl_KeyDown" />
         </WindowsFormsHost>
-
-        <ListView Width="160px" x:Name="OrderSelect" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Center" SelectionMode="Multiple" />
-
-        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <ComboBox x:Name="AnimSelect" Height="30" MinWidth="150" SelectionChanged="AnimSelect_SelectionChanged" />
-            <ComboBox x:Name="SkinSelect" Height="30" MinWidth="200" SelectionChanged="SelectSkin" />
-        </StackPanel>
-
-        <Button Background="Transparent" BorderThickness="0"  Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Click="PlayAnimation">
-            <Image x:Name="PlayPauseImage" Source="/AmorousEditor;component/Resources/Icons/PauseButton.png" />
-        </Button>
 
     </Grid>
 </Window>

@@ -10,6 +10,7 @@ using SharpGL.Enumerations;
 using Spine;
 using System.IO;
 using SharpGL.SceneGraph.Assets;
+using System.Windows.Media.Imaging;
 
 namespace AmorousEditor
 {
@@ -23,11 +24,19 @@ namespace AmorousEditor
         /// </summary>
         float zoom = 1;
 
+        float transX = 0;
+        float transY = 0;
+        float transSpeed = 5f;
+
+        bool boneDebug = false;
+
         Skeleton skelet;
 
         Stopwatch sw = new Stopwatch();
 
         AnimationState anim;
+
+        Dictionary<string, Animation> animations = new Dictionary<string, Animation>();
 
         Dictionary<string, Texture> atlasTextures = new Dictionary<string, Texture>();
 
@@ -76,13 +85,26 @@ namespace AmorousEditor
 
             foreach (var skin in skelet.Data.Skins)
             {
-                //SkinSelect.Items.Add(skin.Name);
+                SkinSelect.Items.Add(skin.Name);
                 skelet.SetSkin(skin.Name);
+            }
+
+            foreach (var order in skelet.DrawOrder)
+            {
+                OrderSelect.Items.Add( order.Data.Name );
+            }
+
+            foreach (var anims in skelet.Data.Animations)
+            {
+                animations.Add( anims.Name, anims );
+                AnimSelect.Items.Add( anims.Name );
             }
 
             anim = new AnimationState(new AnimationStateData(skelet.Data));
             
             anim.SetAnimation(0, skelet.Data.Animations.FirstOrDefault(), true);
+
+            openGLCtrl.Focus();
 
         }
 
@@ -108,12 +130,12 @@ namespace AmorousEditor
             gl.Viewport(0, 0, Convert.ToInt16(host.ActualWidth), Convert.ToInt16(host.ActualHeight));
             gl.MatrixMode(MatrixMode.Modelview);
             gl.LoadIdentity();
-            gl.Ortho(0, host.ActualWidth, -host.ActualHeight, 0, 1, -1);
+            gl.Ortho(-host.ActualWidth * 0.5f * zoom, host.ActualWidth * 0.5f * zoom, -host.ActualHeight * 0.5f * zoom, host.ActualHeight * 0.5f * zoom, 1, -1);
 
             // TODO: Proper zoom + pan
-            gl.Translate(host.ActualWidth/2, -host.ActualHeight, 0);
             
-            gl.Scale(zoom, zoom, 1);
+            //gl.Scale(zoom, zoom, 1);
+            gl.Translate(host.ActualWidth/2 - transX * zoom, -host.ActualHeight + transY * zoom, 0);
 
             //Animations
             if (PlayAnim)
@@ -130,8 +152,15 @@ namespace AmorousEditor
             gl.BlendFunc(BlendingSourceFactor.SourceAlpha, BlendingDestinationFactor.OneMinusSourceAlpha);
             
             DrawBackground(gl);
+
             foreach (var slot in skelet.DrawOrder)
             {
+                if ( !OrderSelect.SelectedItems.Contains( slot.Data.Name ) )
+                {
+                    //MessageBox.Show( $"Not showing: {slot.Data.Name}" );
+                    continue;
+                }
+
                 if (slot.Attachment != null /*&& slot.Attachment.Name.Contains("Flirty shirt")/* && !slot.Attachment.Name.Contains("horse") && !slot.Attachment.Name.Contains("Shorts") && !slot.Attachment.Name.Contains("Remy") && !slot.Attachment.Name.Contains("sleeve") && !slot.Attachment.Name.Contains("stripes") && !slot.Attachment.Name.Contains("underbelly") && !slot.Attachment.Name.Contains("Boobs") && !slot.Attachment.Name.Contains("Nipples") && !slot.Attachment.Name.Contains("fold") && !slot.Attachment.Name.Contains("Blink") && !slot.Attachment.Name.Contains("Security") && !slot.Attachment.Name.Contains("Sad") && !slot.Attachment.Name.Contains("Shy") && !slot.Attachment.Name.Contains("Chill") && !slot.Attachment.Name.Contains("Happy") && !(slot.Attachment.Name.Contains("Flirty") && (slot.Attachment.Name.Contains("Head") || slot.Attachment.Name.Contains("Jaw") || slot.Attachment.Name.Contains("Pupils") || slot.Attachment.Name.Contains("eye") || slot.Attachment.Name.Contains("Blink")))*/)
                 {
                     if (slot.Attachment.GetType() == typeof(RegionAttachment) /*&& slot.Attachment.Name == "Chill underwear"*/)
@@ -182,28 +211,27 @@ namespace AmorousEditor
             
             gl.Disable(OpenGL.GL_TEXTURE_2D);
             gl.Disable(OpenGL.GL_BLEND);
-            
+
             // Debug bone drawing
-            /*
-            foreach (var bone in skelet.Bones)
-            {
-                if (bone.Parent != null)
+            if ( boneDebug )
+                foreach ( var bone in skelet.Bones )
                 {
-                    gl.Begin(BeginMode.Lines);
-                    gl.Color(0f, 1f, 1f);
-                    gl.Vertex(bone.WorldX, bone.WorldY);
-                    gl.Vertex(bone.WorldX + Math.Cos(bone.WorldRotationX * (Math.PI / 180)) * bone.Data.Length, bone.WorldY + Math.Sin(bone.WorldRotationX * (Math.PI / 180)) * bone.Data.Length);
+                    if ( bone.Parent != null )
+                    {
+                        gl.Begin( BeginMode.Lines );
+                        gl.Color( 0f, 1f, 1f );
+                        gl.Vertex( bone.WorldX, bone.WorldY );
+                        gl.Vertex( bone.WorldX + Math.Cos( bone.WorldRotationX * ( Math.PI / 180 ) ) * bone.Data.Length, bone.WorldY + Math.Sin( bone.WorldRotationX * ( Math.PI / 180 ) ) * bone.Data.Length );
+                        gl.End();
+                    }
+
+                    gl.Begin( BeginMode.Points );
+                    gl.Color( 1f, 1f, 0f );
+                    gl.Vertex( bone.WorldX, bone.WorldY );
                     gl.End();
+                    gl.DrawText( Convert.ToInt16( bone.WorldX * zoom ) + Convert.ToInt16( host.ActualWidth / 2 ) + Convert.ToInt16(transX), Convert.ToInt16( bone.WorldY * zoom ) + Convert.ToInt16(transY), 1f, 1f, 1f, "Arial", 12f, bone.Data.Name );
+
                 }
-                
-                gl.Begin(BeginMode.Points);
-                gl.Color(1f, 1f, 0f);
-                gl.Vertex(bone.WorldX, bone.WorldY);
-                gl.End();
-                gl.DrawText(Convert.ToInt16(bone.WorldX * zoom) + Convert.ToInt16(host.ActualWidth / 2), Convert.ToInt16(bone.WorldY * zoom), 1f, 1f, 1f, "Arial", 12f, bone.Data.Name);
-                
-            }
-            */
 
             gl.Flush();
             
@@ -264,7 +292,7 @@ namespace AmorousEditor
         // TODO: Proper zoom and pan
         private void openGLCtrl_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            zoom += e.Delta / 1200f;
+            zoom -= e.Delta / 1200f;
 
             if(zoom == 0)
             {
@@ -280,7 +308,79 @@ namespace AmorousEditor
 
         private void PlayAnimation(object sender, RoutedEventArgs e)
         {
-            PlayAnim = (sender as CheckBox).IsChecked ?? false;
+            PlayAnim = !PlayAnim;
+            PlayPauseImage.Source = PlayAnim ? new BitmapImage( new Uri( "pack://application:,,,/Resources/Icons/PauseButton.png" ) ) : new BitmapImage( new Uri( "pack://application:,,,/Resources/Icons/PlayButton.png" ) );
+        }
+
+        static class NativeMethods
+        {
+            [System.Runtime.InteropServices.DllImport( "gdi32.dll" )]
+            [return: System.Runtime.InteropServices.MarshalAs( System.Runtime.InteropServices.UnmanagedType.Bool )]
+            internal static extern bool DeleteObject( IntPtr hObject );
+        }
+
+        private void openGLCtrl_KeyDown( object sender, System.Windows.Forms.KeyEventArgs e )
+        {
+            switch ( e.KeyCode )
+            {
+                case System.Windows.Forms.Keys.W:
+                    transY -= transSpeed;
+                    break;
+                case System.Windows.Forms.Keys.S:
+                    transY += transSpeed;
+                    break;
+                case System.Windows.Forms.Keys.A:
+                    transX -= transSpeed;
+                    break;
+                case System.Windows.Forms.Keys.D:
+                    transX += transSpeed;
+                    break;
+
+                case System.Windows.Forms.Keys.B:
+                    boneDebug = !boneDebug;
+                    break;
+            }
+
+            e.Handled = true;
+        }
+
+        private void OrderSelect_SelectionChanged( object sender, SelectionChangedEventArgs e )
+        {
+            //try
+            //{
+            //    string selectionName = (sender as ComboBox).SelectedItem.ToString();
+            //    if ( selectionName.StartsWith( "✔" ) )
+            //    {
+            //        //MessageBox.Show( $"Disabling selection: {selectionName}" );
+            //        enabledSlots[ selectionName.Replace( "✔", null ) ] = false;
+            //        (sender as ComboBox).SelectedItem = selectionName.Replace( "✔", "❌" );
+            //        e.Handled = true;
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show( $"Enabling selection: {selectionName}" );
+            //        enabledSlots[ selectionName.Replace( "❌", null ) ] = false;
+            //        (sender as ComboBox).SelectedItem = selectionName.Replace( "❌", "✔" );
+                    e.Handled = true;
+            //    }
+            //} 
+            //catch
+            //{
+            //    MessageBox.Show( "OrderSelect error!" );
+            //}
+        }
+
+        private void AnimSelect_SelectionChanged( object sender, SelectionChangedEventArgs e )
+        {
+            try
+            {
+                anim.SetAnimation( 0, animations[ ( sender as ComboBox ).SelectedItem.ToString() ], true );
+                e.Handled = true;
+            }
+            catch ( Exception ex )
+            {
+                MessageBox.Show( "AnimSelect error!\n" + ex.ToString() );
+            }
         }
     }
 

@@ -101,6 +101,8 @@ namespace AmorousEditor
                         // Creates a RadioButton based on a "template"
                         var toggleButton = MiscUtils.MakeIcon( this, coolImage, $"{file.Name}{(compressed ? "" : "\n(Uncompressed)")}", true);
 
+                        toggleButton.MouseDoubleClick += ( s, e ) => ImageView( s, e, coolImage );
+
                         // Context Menus
 
                         // Creates a new ContextMenu
@@ -462,7 +464,17 @@ namespace AmorousEditor
             SpineUtils.OpenSpine(fileInf);
             e.Handled = true;
         }
-        
+
+        /// <summary>
+        /// Opens a view of the image, allowing zooming and panning
+        /// </summary>
+        /// <param name="coolImage">The image to view</param>
+        private void ImageView( object s, MouseButtonEventArgs e, BitmapSource bitmapSource )
+        {
+            ImageUtils.OpenImage( MiscUtils.BitmapSourceToBitmap( bitmapSource ) );
+            e.Handled = true;
+        }
+
         /// <summary>
         /// Allows you to replace an XNB Texture with a PNG file (may add support for other formats later)
         /// </summary>
